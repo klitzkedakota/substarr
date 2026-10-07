@@ -1,0 +1,6 @@
+{
+  "name": "TubeDesk — Custom YouTube Folders & Subscriptions Organizer",
+  "description": "Minimalist Linear-inspired YouTube subscriptions organizer with nested custom folders, tagging, drag-and-drop, distraction-free player, and local JSON sync.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
