@@ -1,0 +1,8 @@
+# Cloudflare Pages HTTP Headers
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: accelerometer=*, autoplay=*, clipboard-write=*, encrypted-media=*, picture-in-picture=*
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

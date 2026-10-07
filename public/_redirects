@@ -1,0 +1,3 @@
+# Cloudflare Pages SPA Routing rule
+# Rewrites all requests to /index.html so client-side routing works cleanly
+/*    /index.html   200

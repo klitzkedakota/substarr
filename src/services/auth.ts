@@ -19,10 +19,23 @@ export const YOUTUBE_SCOPES = [
   'https://www.googleapis.com/auth/youtube.readonly',
 ];
 
+// Resolved configuration supporting both firebase-applet-config.json and Cloudflare Pages env vars
+export const resolvedFirebaseConfig = {
+  projectId: (import.meta.env.VITE_FIREBASE_PROJECT_ID as string) || firebaseConfig.projectId,
+  appId: (import.meta.env.VITE_FIREBASE_APP_ID as string) || firebaseConfig.appId,
+  apiKey: (import.meta.env.VITE_FIREBASE_API_KEY as string) || firebaseConfig.apiKey,
+  authDomain: (import.meta.env.VITE_FIREBASE_AUTH_DOMAIN as string) || firebaseConfig.authDomain,
+  storageBucket: (import.meta.env.VITE_FIREBASE_STORAGE_BUCKET as string) || firebaseConfig.storageBucket,
+  messagingSenderId: (import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID as string) || firebaseConfig.messagingSenderId,
+  measurementId: (import.meta.env.VITE_FIREBASE_MEASUREMENT_ID as string) || firebaseConfig.measurementId || '',
+  oAuthClientId: (import.meta.env.VITE_FIREBASE_OAUTH_CLIENT_ID as string) || firebaseConfig.oAuthClientId,
+  recaptchaSiteKey: (import.meta.env.VITE_FIREBASE_RECAPTCHA_SITE_KEY as string) || firebaseConfig.recaptchaSiteKey || '',
+};
+
 export { firebaseConfig };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const app = initializeApp(resolvedFirebaseConfig);
 export const auth = getAuth(app);
 
 const provider = new GoogleAuthProvider();
@@ -70,7 +83,7 @@ export const requestGoogleOAuthTokenViaGIS = (): Promise<string> => {
 
     try {
       const tokenClient = window.google.accounts.oauth2.initTokenClient({
-        client_id: firebaseConfig.oAuthClientId,
+        client_id: resolvedFirebaseConfig.oAuthClientId,
         scope: YOUTUBE_SCOPES.join(' '),
         prompt: 'consent',
         callback: (resp: any) => {
