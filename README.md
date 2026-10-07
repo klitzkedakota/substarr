@@ -4,20 +4,54 @@ A minimalist, Linear-inspired custom dashboard and UI wrapper for YouTube subscr
 
 ---
 
-## Deploying to Cloudflare Pages
+## Deploying to Cloudflare
 
-This repository is pre-configured for direct, zero-configuration deployment to **Cloudflare Pages**.
+This repository supports both Cloudflare deployment flows:
+- **Cloudflare Workers (Workers Builds)** (when you see **Deploy command** and **Root directory**)
+- **Cloudflare Pages** (when you see **Build output directory** and **Framework preset**)
 
-### Method 1: Connect Directly via Cloudflare Dashboard (Recommended)
+---
 
-1. Log in to your [Cloudflare Dashboard](https://dash.cloudflare.com/) and navigate to **Workers & Pages** → **Create application** → **Pages** → **Connect to Git**.
-2. Select this GitHub repository (`substarr`).
-3. Set the build settings:
-   - **Framework preset**: `Vite`
-   - **Build command**: `npm run build`
+### If you see "Deploy command" and "Root directory" (Cloudflare Workers Builds)
+
+You are in Cloudflare's **Workers Builds** interface (or creating a Worker from Git):
+
+1. **Root directory**: Leave blank or set to `/` (since the project files are at the root of the repository).
+2. **Build command** *(if shown)*: `npm run build`
+3. **Deploy command**: `npx wrangler deploy` (the default)
+4. **Environment Variables**:
+   - `NODE_VERSION` = `22`
+
+The repository includes a ready-to-use `wrangler.toml` configured with Cloudflare Workers Static Assets:
+```toml
+name = "substarr"
+compatibility_date = "2026-10-01"
+
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"
+html_handling = "auto-trailing-slash"
+
+[build]
+command = "npm run build"
+```
+When `npx wrangler deploy` runs, Cloudflare automatically executes `npm run build` and serves `./dist` with SPA routing (`not_found_handling = "single-page-application"`), handling all routes smoothly without 404s!
+
+---
+
+### If you want to use Cloudflare Pages (Traditional Static Site Hosting)
+
+If you prefer standard **Cloudflare Pages**:
+1. In Cloudflare Dashboard, go to **Workers & Pages** → **Create application** → **Pages** tab (make sure you choose the **Pages** tab, not Worker).
+2. Connect your GitHub repository.
+3. Configure:
+   - **Framework preset**: `Vite` (or `None`)
+   - **Build command**: `npm install && npm run build` (or `npm run build`)
    - **Build output directory**: `dist`
    - **Root directory**: `/` (leave blank)
-4. Click **Save and Deploy**. Cloudflare will build the site and provide a permanent production URL (e.g., `https://substarr.pages.dev`).
+4. In **Environment variables**:
+   - `NODE_VERSION` = `22`
+   - `SKIP_DEPENDENCY_INSTALL` = `1`
 
 ---
 
