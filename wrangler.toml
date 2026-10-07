@@ -1,10 +1,25 @@
-# Cloudflare Pages configuration for substarr
+# Cloudflare Workers (Static Assets) configuration for substarr.
 #
-# NOTE: A Pages config file only supports a small set of keys. Workers-only
-# sections ([build], [assets], etc.) cause the deploy to fail validation with
-# `Configuration file for Pages projects does not support "..."`.
-# The build command and output directory are configured in the Pages dashboard
-# (Build command: `npm run build`, Build output directory: `dist`).
+# This project deploys as a Worker with static assets, not as a Pages project,
+# so there is no `pages_build_output_dir` here. Adding one makes `wrangler
+# deploy` warn that it is being run against a Pages project.
 name = "substarr"
-compatibility_date = "2026-10-01"
-pages_build_output_dir = "dist"
+compatibility_date = "2026-10-07"
+
+# A *.workers.dev URL is useful for smoke-testing before dogpal.app is wired up.
+workers_dev = true
+preview_urls = true
+
+[assets]
+directory = "./dist"
+# SPA routing is handled here, by the asset server. A `/* /index.html 200`
+# rule in public/_redirects is both redundant and invalid alongside
+# `html_handling`, because stripping `/index` re-triggers the `/*` rule:
+#   Invalid _redirects configuration:
+#   Line 3: Infinite loop detected in this rule. [code: 100324]
+not_found_handling = "single-page-application"
+html_handling = "auto-trailing-slash"
+
+# NOTE: no [build] section. Workers Builds already runs the build command from
+# the dashboard; a [build] hook here makes wrangler run `npm run build` a
+# second time on every deploy.

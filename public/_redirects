@@ -1,3 +1,6 @@
-# Cloudflare Pages SPA Routing rule
-# Rewrites all requests to /index.html so client-side routing works cleanly
-/*    /index.html   200
+# Cloudflare redirect rules.
+#
+# Do NOT add a `/*  /index.html  200` SPA rule here. Combined with
+# `html_handling = "auto-trailing-slash"` in wrangler.toml it is rejected at
+# deploy time as an infinite loop (code 100324). SPA fallback is configured
+# via `not_found_handling = "single-page-application"` instead.
