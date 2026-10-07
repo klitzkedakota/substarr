@@ -1,16 +1,10 @@
-# Cloudflare Configuration for substarr
+# Cloudflare Pages configuration for substarr
+#
+# NOTE: A Pages config file only supports a small set of keys. Workers-only
+# sections ([build], [assets], etc.) cause the deploy to fail validation with
+# `Configuration file for Pages projects does not support "..."`.
+# The build command and output directory are configured in the Pages dashboard
+# (Build command: `npm run build`, Build output directory: `dist`).
 name = "substarr"
 compatibility_date = "2026-10-01"
-
-# Pages configuration (if deployed via Cloudflare Pages)
 pages_build_output_dir = "dist"
-
-# Workers Static Assets configuration (if deployed via Cloudflare Workers / Workers Builds)
-[assets]
-directory = "./dist"
-not_found_handling = "single-page-application"
-html_handling = "auto-trailing-slash"
-
-# Build trigger for wrangler deploy
-[build]
-command = "npm run build"
