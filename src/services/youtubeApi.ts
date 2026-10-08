@@ -75,6 +75,167 @@ export function extractChannelIdentifier(input: string): { type: 'handle' | 'id'
   return { type: 'handle', value: trimmed.startsWith('@') ? trimmed : `@${trimmed}` };
 }
 
+interface VideoChannelContext {
+  channelId: string;
+  channelTitle: string;
+  channelAvatarUrl: string;
+  tags: string[];
+}
+
+/**
+ * Reverses formatCount() so a stored display string like "15.2M" stays sortable.
+ * Channels only persist the formatted string, so this is the numeric sort key.
+ */
+export function parseCountToNumber(value: string | number | null | undefined): number {
+  if (value === null || value === undefined) return 0;
+  if (typeof value === 'number') return isNaN(value) ? 0 : value;
+
+  const trimmed = value.trim().replace(/,/g, '');
+  const match = trimmed.match(/^([\d.]+)\s*([KMB])?$/i);
+  if (!match) {
+    const plain = parseInt(trimmed, 10);
+    return isNaN(plain) ? 0 : plain;
+  }
+
+  const base = parseFloat(match[1]);
+  if (isNaN(base)) return 0;
+
+  const suffix = (match[2] || '').toUpperCase();
+  const multiplier = suffix === 'B' ? 1_000_000_000 : suffix === 'M' ? 1_000_000 : suffix === 'K' ? 1_000 : 1;
+  return Math.round(base * multiplier);
+}
+
+/**
+ * Maps raw videos.list items onto the Video shape.
+ */
+function mapVideoDetailItems(items: any[], ctx: VideoChannelContext): Video[] {
+  const mapped: Video[] = [];
+
+  for (const vItem of items || []) {
+    const vSnippet = vItem.snippet;
+    const vStats = vItem.statistics;
+    const vContent = vItem.contentDetails;
+    if (!vSnippet) continue;
+
+    const durationInfo = parseIsoDuration(vContent?.duration || 'PT0S');
+
+    mapped.push({
+      id: `v-${vItem.id}`,
+      youtubeId: vItem.id,
+      title: vSnippet.title,
+      channelId: ctx.channelId,
+      channelTitle: ctx.channelTitle,
+      channelAvatarUrl: ctx.channelAvatarUrl,
+      thumbnailUrl:
+        vSnippet.thumbnails?.maxres?.url ||
+        vSnippet.thumbnails?.high?.url ||
+        vSnippet.thumbnails?.medium?.url ||
+        '',
+      publishedAt: vSnippet.publishedAt,
+      duration: durationInfo.formatted,
+      durationSeconds: durationInfo.seconds,
+      viewCount: formatCount(vStats?.viewCount || 0),
+      viewCountNumber: parseInt(vStats?.viewCount || '0', 10),
+      tags: ctx.tags,
+      description: vSnippet.description || '',
+    });
+  }
+
+  return mapped;
+}
+
+/**
+ * Resolves an uploads playlist into hydrated Video records.
+ * Costs 2 quota units: one playlistItems.list plus one videos.list.
+ */
+async function fetchUploadsFromPlaylist(
+  uploadsPlaylistId: string,
+  apiKey: string,
+  ctx: VideoChannelContext,
+  maxResults: number = 8
+): Promise<Video[]> {
+  const playlistUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&playlistId=${encodeURIComponent(
+    uploadsPlaylistId
+  )}&maxResults=${maxResults}&key=${apiKey}`;
+
+  const playlistRes = await fetch(playlistUrl);
+  if (!playlistRes.ok) {
+    const errJson = await playlistRes.json().catch(() => null);
+    throw new Error(
+      errJson?.error?.message || `YouTube API returned status ${playlistRes.status} for uploads playlist.`
+    );
+  }
+
+  const playlistJson = await playlistRes.json();
+  const videoIds = (playlistJson.items || [])
+    .map((pItem: any) => pItem.contentDetails?.videoId)
+    .filter(Boolean);
+
+  if (videoIds.length === 0) return [];
+
+  const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${videoIds.join(
+    ','
+  )}&key=${apiKey}`;
+  const videoDetailsRes = await fetch(videoDetailsUrl);
+  if (!videoDetailsRes.ok) {
+    const errJson = await videoDetailsRes.json().catch(() => null);
+    throw new Error(
+      errJson?.error?.message || `YouTube API returned status ${videoDetailsRes.status} for video details.`
+    );
+  }
+
+  const videoDetailsJson = await videoDetailsRes.json();
+  return mapVideoDetailItems(videoDetailsJson.items, ctx);
+}
+
+/**
+ * Refreshes recent uploads for an already-imported channel.
+ *
+ * A channel's uploads playlist is its ID with the leading `UC` swapped for `UU`,
+ * so the usual channels.list lookup is skipped — 2 quota units instead of 3.
+ * Non-standard IDs fall back to resolving the playlist explicitly.
+ */
+export async function fetchChannelUploads(
+  channel: Channel,
+  apiKey: string,
+  maxResults: number = 8
+): Promise<Video[]> {
+  if (!apiKey) {
+    throw new Error('Please configure a valid YouTube Data API v3 key in API Settings.');
+  }
+
+  const ctx: VideoChannelContext = {
+    channelId: channel.id,
+    channelTitle: channel.title,
+    channelAvatarUrl: channel.avatarUrl,
+    tags: channel.tags,
+  };
+
+  if (channel.id.startsWith('UC')) {
+    return fetchUploadsFromPlaylist(`UU${channel.id.slice(2)}`, apiKey, ctx, maxResults);
+  }
+
+  const channelUrl = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${encodeURIComponent(
+    channel.id
+  )}&key=${apiKey}`;
+  const channelRes = await fetch(channelUrl);
+  if (!channelRes.ok) {
+    const errJson = await channelRes.json().catch(() => null);
+    throw new Error(
+      errJson?.error?.message || `YouTube API returned status ${channelRes.status} for channel query.`
+    );
+  }
+
+  const channelJson = await channelRes.json();
+  const uploadsPlaylistId = channelJson.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
+  if (!uploadsPlaylistId) {
+    throw new Error(`No uploads playlist found for "${channel.title}".`);
+  }
+
+  return fetchUploadsFromPlaylist(uploadsPlaylistId, apiKey, ctx, maxResults);
+}
+
+
 /**
  * Fetch channel details and recent uploads via official YouTube Data API v3
  */
@@ -129,55 +290,17 @@ export async function fetchLiveChannelData(
     youtubeUrl: `https://youtube.com/${snippet.customUrl || `channel/${channelId}`}`,
   };
 
-  const recentVideos: Video[] = [];
+  let recentVideos: Video[] = [];
 
   // Fetch recent uploads from the uploads playlist
   if (uploadsPlaylistId) {
     try {
-      const playlistUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&playlistId=${uploadsPlaylistId}&maxResults=8&key=${apiKey}`;
-      const playlistRes = await fetch(playlistUrl);
-      if (playlistRes.ok) {
-        const playlistJson = await playlistRes.json();
-        const videoIds = (playlistJson.items || [])
-          .map((pItem: any) => pItem.contentDetails?.videoId)
-          .filter(Boolean);
-
-        if (videoIds.length > 0) {
-          // Fetch full video details for duration and views
-          const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${videoIds.join(',')}&key=${apiKey}`;
-          const videoDetailsRes = await fetch(videoDetailsUrl);
-          if (videoDetailsRes.ok) {
-            const videoDetailsJson = await videoDetailsRes.json();
-            for (const vItem of videoDetailsJson.items || []) {
-              const vSnippet = vItem.snippet;
-              const vStats = vItem.statistics;
-              const vContent = vItem.contentDetails;
-              const durationInfo = parseIsoDuration(vContent.duration || 'PT0S');
-
-              recentVideos.push({
-                id: `v-${vItem.id}`,
-                youtubeId: vItem.id,
-                title: vSnippet.title,
-                channelId: channelId,
-                channelTitle: channel.title,
-                channelAvatarUrl: channel.avatarUrl,
-                thumbnailUrl:
-                  vSnippet.thumbnails?.maxres?.url ||
-                  vSnippet.thumbnails?.high?.url ||
-                  vSnippet.thumbnails?.medium?.url ||
-                  '',
-                publishedAt: vSnippet.publishedAt,
-                duration: durationInfo.formatted,
-                durationSeconds: durationInfo.seconds,
-                viewCount: formatCount(vStats?.viewCount || 0),
-                viewCountNumber: parseInt(vStats?.viewCount || '0', 10),
-                tags: channel.tags,
-                description: vSnippet.description || '',
-              });
-            }
-          }
-        }
-      }
+      recentVideos = await fetchUploadsFromPlaylist(uploadsPlaylistId, apiKey, {
+        channelId,
+        channelTitle: channel.title,
+        channelAvatarUrl: channel.avatarUrl,
+        tags: channel.tags,
+      });
     } catch (vErr) {
       console.warn('Could not fetch uploads playlist for channel:', vErr);
     }

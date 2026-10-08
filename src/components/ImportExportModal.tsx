@@ -98,7 +98,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
   const handleResetConfirm = () => {
     if (
       confirm(
-        'Are you sure you want to restore the default sample folders and channels? Your custom configurations will be overwritten.'
+        'Clear all folders, channels and synced videos from this browser? This cannot be undone.'
       )
     ) {
       onResetToDefault();
@@ -273,11 +273,11 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
                 <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                 <div>
                   <span className="font-semibold block text-white mb-0.5">
-                    Restore Factory Sample Data
+                    Clear All Data
                   </span>
-                  This will reset all folders back to standard defaults (Lego Experiments,
-                  Chemistry, Hunting & Fishing, Video Games, Tech) and restore the original 10
-                  curated channels.
+                  This permanently removes every folder, channel and synced video from this
+                  browser, returning substarr to an empty workspace. Export a backup first if you
+                  want to keep your setup — this cannot be undone.
                 </div>
               </div>
 
@@ -286,7 +286,7 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
                 className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded-lg text-xs font-semibold transition-colors"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
-                <span>Reset to Factory Defaults</span>
+                <span>Clear All Data</span>
               </button>
             </div>
           )}

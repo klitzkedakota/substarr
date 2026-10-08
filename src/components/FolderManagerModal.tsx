@@ -327,7 +327,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
               <div>
                 <input
                   type="text"
-                  placeholder="Folder Name (e.g. Lego Experiments, Chemistry)"
+                  placeholder="Folder Name (e.g. Music, Tech Reviews)"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   className="w-full bg-white/[0.05] border border-white/[0.1] rounded-lg px-3 py-1.5 text-xs text-white placeholder-neutral-500 focus:outline-hidden focus:border-neutral-400"

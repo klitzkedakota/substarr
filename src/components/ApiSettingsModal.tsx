@@ -116,7 +116,7 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
               <span>
                 Active Mode:{' '}
                 <strong className="text-white">
-                  {apiKey ? 'Live YouTube API Connected' : 'Mock Data Mode (Zero Setup)'}
+                  {apiKey ? 'Live YouTube API Connected' : 'No API Key — Videos Cannot Load'}
                 </strong>
               </span>
             </div>
@@ -192,7 +192,7 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
           {/* Architecture & Transition Guide */}
           <div className="pt-4 border-t border-white/[0.07] space-y-3">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 block">
-              Transitioning from Mock to Live Data
+              Connecting to Live Data
             </span>
 
             <div className="space-y-2.5 text-xs text-neutral-300 leading-relaxed">

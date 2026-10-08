@@ -46,6 +46,14 @@ export type SortOption =
   | 'channel_asc'
   | 'views_desc';
 
+export type ChannelSortOption =
+  | 'recently_added'
+  | 'title_asc'
+  | 'title_desc'
+  | 'subs_desc'
+  | 'subs_asc'
+  | 'videos_desc';
+
 export type ViewTab = 'videos' | 'channels';
 
 export type LayoutMode = 'large-grid' | 'small-grid' | 'detailed-list' | 'simple-list' | 'banner';

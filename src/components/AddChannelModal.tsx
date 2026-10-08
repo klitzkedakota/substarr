@@ -236,7 +236,7 @@ export const AddChannelModal: React.FC<AddChannelModalProps> = ({
                   : 'text-neutral-400 hover:text-white'
               }`}
             >
-              Manual / Mock Preset
+              Manual Entry
             </button>
           </div>
 

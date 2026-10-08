@@ -1,5 +1,4 @@
 import { AppState, Channel, Folder, Video, LayoutMode } from '../types';
-import { INITIAL_CHANNELS, INITIAL_FOLDERS, INITIAL_VIDEOS } from '../data/mockData';
 
 const STORAGE_KEY_FOLDERS = 'substarr_folders_v1';
 const STORAGE_KEY_CHANNELS = 'substarr_channels_v1';
@@ -29,18 +28,18 @@ export function loadInitialData(): {
     const rawVideos = localStorage.getItem(STORAGE_KEY_VIDEOS) || localStorage.getItem('tubedesk_videos_v1');
     const rawApiKey = localStorage.getItem(STORAGE_KEY_API_KEY) || localStorage.getItem('tubedesk_api_key_v1');
 
-    const folders: Folder[] = rawFolders ? JSON.parse(rawFolders) : INITIAL_FOLDERS;
-    const channels: Channel[] = rawChannels ? JSON.parse(rawChannels) : INITIAL_CHANNELS;
-    const videos: Video[] = rawVideos ? JSON.parse(rawVideos) : INITIAL_VIDEOS;
+    const folders: Folder[] = rawFolders ? JSON.parse(rawFolders) : [];
+    const channels: Channel[] = rawChannels ? JSON.parse(rawChannels) : [];
+    const videos: Video[] = rawVideos ? JSON.parse(rawVideos) : [];
     const apiKey: string = rawApiKey || '';
 
     return { folders, channels, videos, apiKey };
   } catch (error) {
-    console.error('Error loading data from localStorage, falling back to mock defaults:', error);
+    console.error('Error loading data from localStorage, starting with an empty workspace:', error);
     return {
-      folders: INITIAL_FOLDERS,
-      channels: INITIAL_CHANNELS,
-      videos: INITIAL_VIDEOS,
+      folders: [],
+      channels: [],
+      videos: [],
       apiKey: '',
     };
   }
@@ -171,8 +170,8 @@ export function clearAllAndReset(): {
   localStorage.removeItem(STORAGE_KEY_CHANNELS);
   localStorage.removeItem(STORAGE_KEY_VIDEOS);
   return {
-    folders: INITIAL_FOLDERS,
-    channels: INITIAL_CHANNELS,
-    videos: INITIAL_VIDEOS,
+    folders: [],
+    channels: [],
+    videos: [],
   };
 }

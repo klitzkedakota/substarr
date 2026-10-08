@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Channel, Folder, Video, SortOption, ViewTab, LayoutMode } from './types';
+import { Channel, ChannelSortOption, Folder, Video, SortOption, ViewTab, LayoutMode } from './types';
 import {
   loadInitialData,
   loadLayoutPreferences,
@@ -26,6 +26,7 @@ import { AddChannelModal } from './components/AddChannelModal';
 import { ImportExportModal } from './components/ImportExportModal';
 import { ApiSettingsModal } from './components/ApiSettingsModal';
 import { OAuthImportModal } from './components/OAuthImportModal';
+import { fetchChannelUploads, parseCountToNumber } from './services/youtubeApi';
 import {
   FolderPlus,
   Plus,
@@ -51,6 +52,15 @@ export default function App() {
   const [activeView, setActiveView] = useState<ViewTab>('videos');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [channelSortBy, setChannelSortBy] = useState<ChannelSortOption>('recently_added');
+
+  // Bulk "sync videos" progress. total === 0 means idle.
+  const [syncState, setSyncState] = useState<{
+    running: boolean;
+    done: number;
+    total: number;
+    failed: number;
+  }>({ running: false, done: 0, total: 0, failed: 0 });
 
   // Display Layout Modes for Videos and Channels
   const [videoLayoutMode, setVideoLayoutMode] = useState<LayoutMode>(initialLayouts.videoLayout);
@@ -123,8 +133,17 @@ export default function App() {
   }, [folders, selectedFolderId]);
 
   // Filter channels based on active folder, tag, and search query
+  // Videos held per channel, for the "most videos" channel sort.
+  const videoCountByChannel = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const video of videos) {
+      counts.set(video.channelId, (counts.get(video.channelId) || 0) + 1);
+    }
+    return counts;
+  }, [videos]);
+
   const filteredChannels = useMemo(() => {
-    return channels.filter((channel) => {
+    const result = channels.filter((channel) => {
       // Folder check
       if (selectedFolderId === 'uncategorized') {
         if (channel.folderId !== null) return false;
@@ -149,7 +168,34 @@ export default function App() {
 
       return true;
     });
-  }, [channels, selectedFolderId, relevantFolderIds, selectedTag, searchQuery]);
+
+    // `recently_added` keeps insertion order: new channels are prepended.
+    if (channelSortBy === 'recently_added') {
+      return result;
+    }
+
+    const sorted = [...result];
+    switch (channelSortBy) {
+      case 'title_asc':
+        sorted.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case 'title_desc':
+        sorted.sort((a, b) => b.title.localeCompare(a.title));
+        break;
+      case 'subs_desc':
+        sorted.sort((a, b) => parseCountToNumber(b.subscriberCount) - parseCountToNumber(a.subscriberCount));
+        break;
+      case 'subs_asc':
+        sorted.sort((a, b) => parseCountToNumber(a.subscriberCount) - parseCountToNumber(b.subscriberCount));
+        break;
+      case 'videos_desc':
+        sorted.sort(
+          (a, b) => (videoCountByChannel.get(b.id) || 0) - (videoCountByChannel.get(a.id) || 0)
+        );
+        break;
+    }
+    return sorted;
+  }, [channels, selectedFolderId, relevantFolderIds, selectedTag, searchQuery, channelSortBy, videoCountByChannel]);
 
   // Filtered channel IDs for video filtering
   const matchingChannelIds = useMemo(() => {
@@ -281,6 +327,65 @@ export default function App() {
     }
   };
 
+  /**
+   * Refreshes recent uploads for every imported channel.
+   *
+   * Runs a small worker pool so a few hundred channels neither stall the UI nor
+   * trip YouTube's rate limits. One channel failing does not abort the run.
+   * Costs ~2 quota units per channel against a 10,000/day budget.
+   */
+  const handleSyncAllVideos = async () => {
+    if (syncState.running) return;
+
+    if (!apiKey) {
+      setIsApiSettingsOpen(true);
+      return;
+    }
+
+    const targets = [...channels];
+    if (targets.length === 0) return;
+
+    setSyncState({ running: true, done: 0, total: targets.length, failed: 0 });
+
+    const CONCURRENCY = 5;
+    const collected: Video[] = [];
+    const syncedChannelIds = new Set<string>();
+    let failedCount = 0;
+    let cursor = 0;
+
+    const worker = async () => {
+      while (cursor < targets.length) {
+        const channel = targets[cursor++];
+        try {
+          const fetched = await fetchChannelUploads(channel, apiKey);
+          collected.push(...fetched);
+          syncedChannelIds.add(channel.id);
+        } catch (err) {
+          failedCount += 1;
+          console.warn(`Could not sync videos for "${channel.title}":`, err);
+        }
+        setSyncState((prev) => ({ ...prev, done: prev.done + 1, failed: failedCount }));
+      }
+    };
+
+    await Promise.all(
+      Array.from({ length: Math.min(CONCURRENCY, targets.length) }, () => worker())
+    );
+
+    setVideos((prev) => {
+      // Replace videos only for channels that synced cleanly; keep the rest as-is.
+      const kept = prev.filter((v) => !syncedChannelIds.has(v.channelId));
+      const byId = new Map<string, Video>();
+      for (const video of [...collected, ...kept]) {
+        if (!byId.has(video.id)) byId.set(video.id, video);
+      }
+      return Array.from(byId.values());
+    });
+
+    setSyncState({ running: false, done: targets.length, total: targets.length, failed: failedCount });
+    setActiveView('videos');
+  };
+
   const handleBatchImportChannels = (newChannels: Channel[]) => {
     setChannels((prev) => {
       const existingIds = new Set(prev.map((c) => c.id));
@@ -367,6 +472,13 @@ export default function App() {
           onSearchChange={(q) => setSearchQuery(q)}
           sortBy={sortBy}
           onSortChange={(s) => setSortBy(s)}
+          channelSortBy={channelSortBy}
+          onChannelSortChange={(s) => setChannelSortBy(s)}
+          onSyncVideos={handleSyncAllVideos}
+          syncRunning={syncState.running}
+          syncDone={syncState.done}
+          syncTotal={syncState.total}
+          canSync={channels.length > 0}
           layoutMode={activeLayoutMode}
           onChangeLayoutMode={handleLayoutModeChange}
           onOpenAddChannel={() => setIsAddChannelOpen(true)}

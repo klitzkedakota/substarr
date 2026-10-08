@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Folder as FolderType, SortOption, ViewTab, LayoutMode } from '../types';
+import { Folder as FolderType, SortOption, ChannelSortOption, ViewTab, LayoutMode } from '../types';
 import {
   Search,
   SlidersHorizontal,
   Plus,
+  RefreshCw,
   Video as VideoIcon,
   Users,
   Menu,
@@ -38,6 +39,13 @@ interface HeaderProps {
   onOpenAddChannel: () => void;
   onToggleMobileSidebar: () => void;
   itemCount: number;
+  channelSortBy: ChannelSortOption;
+  onChannelSortChange: (sort: ChannelSortOption) => void;
+  onSyncVideos: () => void;
+  syncRunning: boolean;
+  syncDone: number;
+  syncTotal: number;
+  canSync: boolean;
 }
 
 const LAYOUT_OPTIONS: {
@@ -94,6 +102,13 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAddChannel,
   onToggleMobileSidebar,
   itemCount,
+  channelSortBy,
+  onChannelSortChange,
+  onSyncVideos,
+  syncRunning,
+  syncDone,
+  syncTotal,
+  canSync,
 }) => {
   const [showLayoutMenu, setShowLayoutMenu] = useState(false);
 
@@ -302,6 +317,54 @@ export const Header: React.FC<HeaderProps> = ({
             <ArrowUpDown className="w-3 h-3 text-neutral-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         )}
+
+        {/* Sort Selector (Channels) */}
+        {activeView === 'channels' && (
+          <div className="relative">
+            <select
+              value={channelSortBy}
+              onChange={(e) => onChannelSortChange(e.target.value as ChannelSortOption)}
+              className="appearance-none bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] text-neutral-300 text-xs rounded-md pl-2.5 pr-7 py-1.5 cursor-pointer focus:outline-hidden focus:border-neutral-500 transition-colors"
+            >
+              <option value="recently_added" className="bg-[#121316] text-white">
+                Recently Added
+              </option>
+              <option value="title_asc" className="bg-[#121316] text-white">
+                Name (A-Z)
+              </option>
+              <option value="title_desc" className="bg-[#121316] text-white">
+                Name (Z-A)
+              </option>
+              <option value="subs_desc" className="bg-[#121316] text-white">
+                Most Subscribers
+              </option>
+              <option value="subs_asc" className="bg-[#121316] text-white">
+                Fewest Subscribers
+              </option>
+              <option value="videos_desc" className="bg-[#121316] text-white">
+                Most Videos Synced
+              </option>
+            </select>
+            <ArrowUpDown className="w-3 h-3 text-neutral-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+        )}
+
+        {/* Sync Videos Button */}
+        <button
+          onClick={onSyncVideos}
+          disabled={!canSync || syncRunning}
+          title={
+            canSync
+              ? 'Fetch recent uploads for every channel'
+              : 'Add channels first, then sync their videos'
+          }
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-neutral-200 bg-white/[0.06] hover:bg-white/[0.1] disabled:opacity-40 disabled:cursor-not-allowed rounded-md transition-colors shrink-0"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${syncRunning ? 'animate-spin' : ''}`} />
+          <span className="hidden sm:inline">
+            {syncRunning ? `Syncing ${syncDone}/${syncTotal}` : 'Sync Videos'}
+          </span>
+        </button>
 
         {/* Add Channel Button */}
         <button
