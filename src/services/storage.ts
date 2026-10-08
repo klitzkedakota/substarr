@@ -1,4 +1,5 @@
 import { AppState, Channel, Folder, Video, LayoutMode } from '../types';
+import { withoutShorts } from './youtubeApi';
 
 const STORAGE_KEY_FOLDERS = 'substarr_folders_v1';
 const STORAGE_KEY_CHANNELS = 'substarr_channels_v1';
@@ -30,7 +31,9 @@ export function loadInitialData(): {
 
     const folders: Folder[] = rawFolders ? JSON.parse(rawFolders) : [];
     const channels: Channel[] = rawChannels ? JSON.parse(rawChannels) : [];
-    const videos: Video[] = rawVideos ? JSON.parse(rawVideos) : [];
+    // Shorts are filtered at fetch time, but a workspace saved by an earlier
+    // build can still hold them, so sweep them out on load.
+    const videos: Video[] = withoutShorts(rawVideos ? JSON.parse(rawVideos) : []);
     const apiKey: string = rawApiKey || '';
 
     return { folders, channels, videos, apiKey };
@@ -153,7 +156,7 @@ export function parseAndValidateImport(rawJson: string): {
       data: {
         folders: parsed.folders,
         channels: parsed.channels,
-        videos: Array.isArray(parsed.videos) ? parsed.videos : [],
+        videos: Array.isArray(parsed.videos) ? withoutShorts(parsed.videos) : [],
       },
     };
   } catch (err: any) {

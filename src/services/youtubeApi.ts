@@ -6,6 +6,43 @@ export interface ChannelFetchResult {
 }
 
 /**
+ * Upper bound for treating an upload as a Short.
+ *
+ * YouTube raised the Shorts ceiling to 3 minutes in late 2024, but a 3-minute
+ * cutoff would also swallow plenty of genuine long-form uploads. 60s stays the
+ * safe duration heuristic; the UULF playlist below does the precise filtering
+ * and this only backstops it.
+ */
+export const SHORTS_MAX_SECONDS = 60;
+
+/**
+ * True when an upload looks like a Short.
+ *
+ * A zero duration means an upcoming premiere or a live stream, never a Short,
+ * so it is excluded from the duration test.
+ */
+export function isShortVideo(
+  video: Pick<Video, 'durationSeconds' | 'title' | 'description'>
+): boolean {
+  if (video.durationSeconds > 0 && video.durationSeconds <= SHORTS_MAX_SECONDS) return true;
+  return /#shorts?\b/i.test((video.title || '') + ' ' + (video.description || ''));
+}
+
+/** Drops every Short from a video list. */
+export function withoutShorts(videos: Video[]): Video[] {
+  return videos.filter((v) => !isShortVideo(v));
+}
+
+/**
+ * UU<id> is a channel's full uploads playlist, Shorts included. The
+ * undocumented UULF<id> sibling holds long-form uploads only, which keeps
+ * Shorts out server-side instead of spending quota to fetch and discard them.
+ */
+function longFormPlaylistId(channelId: string): string | null {
+  return channelId.startsWith('UC') ? `UULF${channelId.slice(2)}` : null;
+}
+
+/**
  * Parses ISO 8601 duration format (e.g. PT14M26S or PT1H2M10S) to readable mm:ss or hh:mm:ss
  */
 export function parseIsoDuration(durationStr: string): { formatted: string; seconds: number } {
@@ -141,24 +178,33 @@ function mapVideoDetailItems(items: any[], ctx: VideoChannelContext): Video[] {
     });
   }
 
-  return mapped;
+  // Shorts never enter the workspace, whichever playlist they arrived from.
+  return withoutShorts(mapped);
 }
 
 /**
  * Resolves an uploads playlist into hydrated Video records.
  * Costs 2 quota units: one playlistItems.list plus one videos.list.
+ *
+ * Returns null when the playlist does not exist, which is how a missing UULF
+ * long-form playlist is detected so the caller can fall back.
  */
 async function fetchUploadsFromPlaylist(
   uploadsPlaylistId: string,
   apiKey: string,
   ctx: VideoChannelContext,
   maxResults: number = 8
-): Promise<Video[]> {
+): Promise<Video[] | null> {
+  // Ask for extra rows so a Shorts-heavy playlist still yields maxResults
+  // long-form videos after filtering. 50 is the API's per-page ceiling.
+  const fetchCount = Math.min(50, Math.max(maxResults, maxResults * 3));
+
   const playlistUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&playlistId=${encodeURIComponent(
     uploadsPlaylistId
-  )}&maxResults=${maxResults}&key=${apiKey}`;
+  )}&maxResults=${fetchCount}&key=${apiKey}`;
 
   const playlistRes = await fetch(playlistUrl);
+  if (playlistRes.status === 404) return null;
   if (!playlistRes.ok) {
     const errJson = await playlistRes.json().catch(() => null);
     throw new Error(
@@ -185,7 +231,34 @@ async function fetchUploadsFromPlaylist(
   }
 
   const videoDetailsJson = await videoDetailsRes.json();
-  return mapVideoDetailItems(videoDetailsJson.items, ctx);
+  return mapVideoDetailItems(videoDetailsJson.items, ctx).slice(0, maxResults);
+}
+
+/**
+ * Pulls long-form uploads for a channel, preferring the UULF playlist and
+ * falling back to the full UU uploads playlist when it is unavailable.
+ */
+async function fetchLongFormUploads(
+  channelId: string,
+  fallbackPlaylistId: string,
+  apiKey: string,
+  ctx: VideoChannelContext,
+  maxResults: number
+): Promise<Video[]> {
+  const longForm = longFormPlaylistId(channelId);
+
+  if (longForm) {
+    const viaLongForm = await fetchUploadsFromPlaylist(longForm, apiKey, ctx, maxResults);
+    if (viaLongForm !== null) return viaLongForm;
+  }
+
+  // No long-form playlist for this channel: fall back to all uploads, where
+  // mapVideoDetailItems still strips anything that looks like a Short.
+  const viaUploads = await fetchUploadsFromPlaylist(fallbackPlaylistId, apiKey, ctx, maxResults);
+  if (viaUploads === null) {
+    throw new Error(`Uploads playlist not found for channel "${ctx.channelTitle || channelId}".`);
+  }
+  return viaUploads;
 }
 
 /**
@@ -212,7 +285,7 @@ export async function fetchChannelUploads(
   };
 
   if (channel.id.startsWith('UC')) {
-    return fetchUploadsFromPlaylist(`UU${channel.id.slice(2)}`, apiKey, ctx, maxResults);
+    return fetchLongFormUploads(channel.id, `UU${channel.id.slice(2)}`, apiKey, ctx, maxResults);
   }
 
   const channelUrl = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${encodeURIComponent(
@@ -232,7 +305,7 @@ export async function fetchChannelUploads(
     throw new Error(`No uploads playlist found for "${channel.title}".`);
   }
 
-  return fetchUploadsFromPlaylist(uploadsPlaylistId, apiKey, ctx, maxResults);
+  return fetchLongFormUploads(channel.id, uploadsPlaylistId, apiKey, ctx, maxResults);
 }
 
 
@@ -295,12 +368,18 @@ export async function fetchLiveChannelData(
   // Fetch recent uploads from the uploads playlist
   if (uploadsPlaylistId) {
     try {
-      recentVideos = await fetchUploadsFromPlaylist(uploadsPlaylistId, apiKey, {
+      recentVideos = await fetchLongFormUploads(
         channelId,
-        channelTitle: channel.title,
-        channelAvatarUrl: channel.avatarUrl,
-        tags: channel.tags,
-      });
+        uploadsPlaylistId,
+        apiKey,
+        {
+          channelId,
+          channelTitle: channel.title,
+          channelAvatarUrl: channel.avatarUrl,
+          tags: channel.tags,
+        },
+        8
+      );
     } catch (vErr) {
       console.warn('Could not fetch uploads playlist for channel:', vErr);
     }
@@ -323,7 +402,9 @@ export async function fetchUserSubscriptions(
   const channels: Channel[] = [];
   let nextPageToken: string | undefined = undefined;
   let pageCount = 0;
-  const maxPages = 4; // Fetch up to 200 subscriptions in 1-click
+  // A YouTube account caps out around 2,000 subscriptions; 50 pages x 50 rows
+  // covers that with headroom and exists only as a runaway-loop guard.
+  const maxPages = 50;
 
   do {
     let url = `https://www.googleapis.com/youtube/v3/subscriptions?part=snippet,contentDetails&mine=true&maxResults=50`;
