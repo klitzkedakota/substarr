@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Folder as FolderType } from '../types';
 import { FolderIcon } from './FolderIcon';
+import { findRootFolder } from '../services/folderStyles';
 import {
   X,
   Plus,
@@ -23,6 +24,10 @@ const COLOR_PALETTE = [
   '#EC4899', // Pink
   '#F97316', // Orange
   '#64748B', // Slate
+  '#EAB308', // Yellow
+  '#84CC16', // Lime
+  '#6366F1', // Indigo
+  '#D946EF', // Fuchsia
 ];
 
 const ICON_OPTIONS = [
@@ -40,6 +45,17 @@ const ICON_OPTIONS = [
   'BookOpen',
   'Zap',
   'Layers',
+  'Sparkles',
+  'Laugh',
+  'Dumbbell',
+  'Puzzle',
+  'ScrollText',
+  'Hammer',
+  'Mic',
+  'Newspaper',
+  'Trophy',
+  'Cannabis',
+  'Rainbow',
 ];
 
 interface FolderManagerModalProps {
@@ -72,6 +88,24 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
   const [newIcon, setNewIcon] = useState(ICON_OPTIONS[0]);
   const [newParentId, setNewParentId] = useState<string | null>(initialParentId);
 
+  // Subfolders inherit the color and icon of their top-level folder
+  const folderById = new Map(folders.map((f) => [f.id, f]));
+  const inheritedFrom = (parentId: string | null): FolderType | null => {
+    if (!parentId || parentId === 'none') return null;
+    const parent = folderById.get(parentId);
+    return parent ? findRootFolder(parent, folderById) : null;
+  };
+
+  const InheritedStyleNote: React.FC<{ root: FolderType }> = ({ root }) => (
+    <div className="flex items-center gap-2 text-neutral-400">
+      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: root.color }} />
+      <FolderIcon iconName={root.icon} className="w-3.5 h-3.5" color={root.color} />
+      <span>
+        Uses <span className="text-white">{root.name}</span>&rsquo;s color and icon
+      </span>
+    </div>
+  );
+
   const handleStartEdit = (f: FolderType) => {
     setEditingId(f.id);
     setEditName(f.name);
@@ -82,11 +116,12 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
 
   const handleSaveEdit = () => {
     if (editingId && editName.trim()) {
+      const parentId = editParentId === 'none' ? null : editParentId;
       onUpdateFolder(editingId, {
         name: editName.trim(),
-        color: editColor,
-        icon: editIcon,
-        parentId: editParentId === 'none' ? null : editParentId,
+        parentId,
+        // Subfolders take their style from the top-level folder
+        ...(parentId ? {} : { color: editColor, icon: editIcon }),
       });
       setEditingId(null);
     }
@@ -96,11 +131,13 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
     e.preventDefault();
     if (!newName.trim()) return;
 
+    const parentId = newParentId === 'none' ? null : newParentId;
+    const root = inheritedFrom(parentId);
     onCreateFolder({
       name: newName.trim(),
-      color: newColor,
-      icon: newIcon,
-      parentId: newParentId === 'none' ? null : newParentId,
+      color: root ? root.color : newColor,
+      icon: root ? root.icon : newIcon,
+      parentId,
       order: folders.length,
     });
 
@@ -193,6 +230,10 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
               </select>
             </div>
 
+            {inheritedFrom(editParentId) ? (
+              <InheritedStyleNote root={inheritedFrom(editParentId)!} />
+            ) : (
+            <>
             {/* Icon picker */}
             <div className="flex items-center gap-2">
               <span className="text-neutral-400">Icon:</span>
@@ -224,6 +265,11 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                 />
               ))}
             </div>
+            {(childFoldersMap.get(folder.id) || []).length > 0 && (
+              <span className="text-neutral-500">Subfolders will update to match.</span>
+            )}
+            </>
+            )}
           </div>
         </div>
       );
@@ -357,6 +403,11 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                   </select>
                 </div>
 
+                {inheritedFrom(newParentId) ? (
+                  <div className="flex items-end pb-1.5">
+                    <InheritedStyleNote root={inheritedFrom(newParentId)!} />
+                  </div>
+                ) : (
                 <div>
                   <label className="block text-neutral-400 mb-1 text-[11px]">Icon:</label>
                   <select
@@ -371,9 +422,11 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                     ))}
                   </select>
                 </div>
+                )}
               </div>
 
               {/* Color swatches */}
+              {!inheritedFrom(newParentId) && (
               <div>
                 <label className="block text-neutral-400 mb-1.5 text-[11px]">Color Tag:</label>
                 <div className="flex items-center gap-2">
@@ -390,6 +443,7 @@ export const FolderManagerModal: React.FC<FolderManagerModalProps> = ({
                   ))}
                 </div>
               </div>
+              )}
 
               <div className="pt-2 flex justify-end">
                 <button

@@ -27,6 +27,7 @@ import { ImportExportModal } from './components/ImportExportModal';
 import { ApiSettingsModal } from './components/ApiSettingsModal';
 import { OAuthImportModal } from './components/OAuthImportModal';
 import { fetchChannelUploads, parseCountToNumber } from './services/youtubeApi';
+import { applyInheritedStyles } from './services/folderStyles';
 import {
   FolderPlus,
   Plus,
@@ -42,7 +43,7 @@ export default function App() {
   const initialData = useMemo(() => loadInitialData(), []);
   const initialLayouts = useMemo(() => loadLayoutPreferences(), []);
 
-  const [folders, setFolders] = useState<Folder[]>(initialData.folders);
+  const [folders, setFolders] = useState<Folder[]>(() => applyInheritedStyles(initialData.folders));
   const [channels, setChannels] = useState<Channel[]>(initialData.channels);
   const [videos, setVideos] = useState<Video[]>(initialData.videos);
   const [apiKey, setApiKey] = useState<string>(initialData.apiKey);
@@ -286,14 +287,17 @@ export default function App() {
       ...folderData,
       id: `f-${Date.now()}`,
     };
-    setFolders((prev) => [...prev, newFolder]);
+    // Subfolders take their top-level folder's color and icon
+    setFolders((prev) => applyInheritedStyles([...prev, newFolder]));
     setSelectedFolderId(newFolder.id);
     setSelectedTag(null);
   };
 
   const handleUpdateFolder = (id: string, updates: Partial<Folder>) => {
+    // Re-apply inheritance so edits to a top-level folder reach its subfolders,
+    // and a folder moved under a new parent adopts that parent's style
     setFolders((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, ...updates } : f))
+      applyInheritedStyles(prev.map((f) => (f.id === id ? { ...f, ...updates } : f)))
     );
   };
 
@@ -400,7 +404,7 @@ export default function App() {
   };
 
   const handleImportSuccess = (data: { folders: Folder[]; channels: Channel[]; videos: Video[] }) => {
-    setFolders(data.folders);
+    setFolders(applyInheritedStyles(data.folders));
     setChannels(data.channels);
     setVideos(data.videos);
     setSelectedFolderId('all');

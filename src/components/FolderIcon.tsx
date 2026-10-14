@@ -17,6 +17,16 @@ import {
   Zap,
   Sparkles,
   Layers,
+  Laugh,
+  Dumbbell,
+  Puzzle,
+  ScrollText,
+  Hammer,
+  Mic,
+  Newspaper,
+  Trophy,
+  Cannabis,
+  Rainbow,
 } from 'lucide-react';
 
 interface Props {
@@ -67,6 +77,35 @@ export const FolderIcon: React.FC<Props> = ({ iconName, className = 'w-4 h-4', c
       return <Zap {...iconProps} />;
     case 'layers':
       return <Layers {...iconProps} />;
+    case 'sparkles':
+      return <Sparkles {...iconProps} />;
+    case 'laugh':
+    case 'comedy':
+      return <Laugh {...iconProps} />;
+    case 'dumbbell':
+    case 'fitness':
+      return <Dumbbell {...iconProps} />;
+    case 'puzzle':
+    case 'hobby':
+      return <Puzzle {...iconProps} />;
+    case 'scrolltext':
+    case 'lore':
+      return <ScrollText {...iconProps} />;
+    case 'hammer':
+    case 'makers':
+      return <Hammer {...iconProps} />;
+    case 'mic':
+      return <Mic {...iconProps} />;
+    case 'newspaper':
+    case 'news':
+      return <Newspaper {...iconProps} />;
+    case 'trophy':
+    case 'sports':
+      return <Trophy {...iconProps} />;
+    case 'cannabis':
+      return <Cannabis {...iconProps} />;
+    case 'rainbow':
+      return <Rainbow {...iconProps} />;
     default:
       return <FolderIconLucide {...iconProps} />;
   }
