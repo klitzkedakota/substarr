@@ -271,7 +271,7 @@ export const OAuthImportModal: React.FC<OAuthImportModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
-      <div className="relative w-full max-w-xl bg-[#0f1013] border border-white/[0.1] rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
+      <div className="relative w-full max-w-xl bg-[#0b0b0c] border border-white/[0.1] rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
         {/* Header */}
         <div className="h-14 px-6 border-b border-white/[0.07] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2 text-white font-semibold text-sm">
@@ -287,7 +287,7 @@ export const OAuthImportModal: React.FC<OAuthImportModalProps> = ({
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex border-b border-white/[0.07] px-6 bg-[#0c0d10]">
+        <div className="flex border-b border-white/[0.07] px-6 bg-[#050505]">
           <button
             type="button"
             onClick={() => setActiveTab('oauth')}

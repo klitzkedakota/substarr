@@ -210,30 +210,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-40 w-64 bg-[#0e0f12] border-r border-white/[0.07] flex flex-col transition-transform duration-200 lg:translate-x-0 ${
+        className={`fixed top-0 bottom-0 left-0 z-40 w-64 bg-[#0b0b0c] border-r border-white/[0.07] flex flex-col transition-transform duration-200 lg:translate-x-0 ${
           isOpenMobile ? 'translate-x-0' : '-translate-x-full'
         } lg:static lg:w-64 lg:shrink-0`}
       >
-        {/* Workspace Brand / Header */}
+        {/* Library heading (the app name lives in the shared dogpal.app header) */}
         <div className="h-14 px-4 border-b border-white/[0.07] flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-red-600/20 border border-red-500/30 flex items-center justify-center text-red-500 shadow-inner">
-              <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                <path d="M12 2l2.4 7.2h7.6l-6.1 4.5 2.3 7.3-6.2-4.6-6.2 4.6 2.3-7.3-6.1-4.5h7.6z" />
-              </svg>
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm font-bold tracking-tight text-white block leading-none">
-                  substarr
-                </span>
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-              </div>
-              <span className="text-[10px] text-neutral-400 leading-none">
-                YouTube Workspace
-              </span>
-            </div>
-          </div>
+          <span className="font-mono text-[11px] tracking-[0.14em] text-neutral-400">LIBRARY</span>
 
           <button
             onClick={() => onOpenCreateFolder(null)}
@@ -384,7 +367,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Bottom Utility Bar */}
-        <div className="p-2 border-t border-white/[0.07] bg-[#0c0d10] space-y-1">
+        <div className="p-2 border-t border-white/[0.07] bg-[#050505] space-y-1">
           <button
             onClick={onOpenOAuthImport}
             className="w-full flex items-center justify-between px-2.5 py-1.5 text-xs text-white bg-red-600/15 hover:bg-red-600/25 border border-red-500/30 rounded-md transition-colors"

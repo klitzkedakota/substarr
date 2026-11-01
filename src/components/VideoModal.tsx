@@ -76,12 +76,12 @@ export const VideoModal: React.FC<VideoModalProps> = ({
       <div className="absolute inset-0" onClick={onClose} />
 
       <div
-        className={`relative z-10 w-full bg-[#0e0f12] border border-white/[0.1] rounded-2xl overflow-hidden shadow-2xl flex flex-col transition-all duration-300 max-h-[96vh] ${
+        className={`relative z-10 w-full bg-[#0b0b0c] border border-white/[0.1] rounded-2xl overflow-hidden shadow-2xl flex flex-col transition-all duration-300 max-h-[96vh] ${
           isTheater ? 'max-w-6xl h-[94vh]' : 'max-w-4xl'
         }`}
       >
         {/* Top Minimalist Header */}
-        <div className="h-13 px-4 sm:px-6 bg-[#131418] border-b border-white/[0.07] flex items-center justify-between gap-3 shrink-0">
+        <div className="h-13 px-4 sm:px-6 bg-[#111113] border-b border-white/[0.07] flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             {video.channelAvatarUrl && (
               <img
@@ -216,11 +216,11 @@ export const VideoModal: React.FC<VideoModalProps> = ({
               }}
               className="bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-white text-xs rounded px-2.5 py-1 focus:outline-hidden"
             >
-              <option value="uncategorized" className="bg-[#17181c] text-neutral-400">
+              <option value="uncategorized" className="bg-[#18181b] text-neutral-400">
                 Uncategorized
               </option>
               {folders.map((f) => (
-                <option key={f.id} value={f.id} className="bg-[#17181c] text-white">
+                <option key={f.id} value={f.id} className="bg-[#18181b] text-white">
                   {f.name}
                 </option>
               ))}
@@ -229,7 +229,7 @@ export const VideoModal: React.FC<VideoModalProps> = ({
 
           {/* Video Description */}
           {video.description && (
-            <div className="text-xs text-neutral-300 leading-relaxed bg-[#131418] p-3.5 rounded-lg border border-white/[0.05]">
+            <div className="text-xs text-neutral-300 leading-relaxed bg-[#111113] p-3.5 rounded-lg border border-white/[0.05]">
               <div
                 className={`whitespace-pre-line ${
                   !showFullDescription ? 'line-clamp-3' : ''

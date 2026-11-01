@@ -440,7 +440,26 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-[#0b0c0e] text-neutral-200 overflow-hidden font-sans">
+    <div className="flex flex-col h-screen w-full bg-[#050505] text-neutral-200 overflow-hidden font-sans">
+      {/* Shared dogpal.app header (same on every app). Sections: Videos / Channels. */}
+      <dogpal-header app="substarr" initial="S" app-href="./">
+        <button
+          type="button"
+          aria-pressed={activeView === 'videos'}
+          onClick={() => setActiveView('videos')}
+        >
+          Videos
+        </button>
+        <button
+          type="button"
+          aria-pressed={activeView === 'channels'}
+          onClick={() => setActiveView('channels')}
+        >
+          Channels
+        </button>
+      </dogpal-header>
+
+      <div className="flex flex-1 min-h-0 w-full">
       {/* Sidebar */}
       <Sidebar
         folders={folders}
@@ -463,7 +482,7 @@ export default function App() {
       />
 
       {/* Main View Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[#0b0c0e]">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[#050505]">
         {/* Top Header */}
         <Header
           currentFolder={currentFolder}
@@ -653,6 +672,7 @@ export default function App() {
             </>
           )}
         </main>
+      </div>
       </div>
 
       {/* Video Playback Modal */}

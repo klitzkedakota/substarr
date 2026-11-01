@@ -62,7 +62,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
           />
           <div
             onClick={(e) => e.stopPropagation()}
-            className="absolute left-0 bottom-full mb-1 z-40 w-48 bg-[#17181c] border border-white/[0.1] rounded-lg shadow-xl py-1 text-xs text-neutral-300"
+            className="absolute left-0 bottom-full mb-1 z-40 w-48 bg-[#18181b] border border-white/[0.1] rounded-lg shadow-xl py-1 text-xs text-neutral-300"
           >
             <div className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-500 border-b border-white/[0.06]">
               Assign Channel Folder
@@ -111,7 +111,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
     return (
       <div
         onClick={() => onPlay(video)}
-        className="group flex items-center justify-between px-3.5 py-2.5 bg-[#121316] hover:bg-white/[0.04] border border-white/[0.05] hover:border-white/[0.12] rounded-lg transition-colors cursor-pointer text-xs"
+        className="group flex items-center justify-between px-3.5 py-2.5 bg-[#111113] hover:bg-white/[0.04] border border-white/[0.05] hover:border-white/[0.12] rounded-lg transition-colors cursor-pointer text-xs"
       >
         <div className="flex items-center gap-3 min-w-0 flex-1 pr-4">
           <button
@@ -178,7 +178,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   // 2. DETAILED LIST VIEW (Horizontal row card with excerpt & full info)
   if (layoutMode === 'detailed-list') {
     return (
-      <div className="group flex flex-col sm:flex-row bg-[#121316] hover:bg-[#14151a] border border-white/[0.06] hover:border-white/[0.14] rounded-xl overflow-hidden transition-all shadow-xs">
+      <div className="group flex flex-col sm:flex-row bg-[#111113] hover:bg-[#18181b] border border-white/[0.06] hover:border-white/[0.14] rounded-xl overflow-hidden transition-all shadow-xs">
         {/* Left: Thumbnail (w-64 on desktop) */}
         <div
           onClick={() => onPlay(video)}
@@ -281,7 +281,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
         />
 
         {/* Gradient backdrop */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0b0c0e] via-[#0b0c0e]/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent" />
 
         {/* Top Badges */}
         <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
@@ -341,7 +341,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
   // 4. SMALL THUMBNAILS GRID (Compact card for high-density multi-column wall)
   if (layoutMode === 'small-grid') {
     return (
-      <div className="group relative flex flex-col bg-[#121316] rounded-lg border border-white/[0.06] hover:border-white/[0.14] transition-all overflow-hidden shadow-xs">
+      <div className="group relative flex flex-col bg-[#111113] rounded-lg border border-white/[0.06] hover:border-white/[0.14] transition-all overflow-hidden shadow-xs">
         <div
           onClick={() => onPlay(video)}
           className="relative aspect-video w-full bg-neutral-900 cursor-pointer overflow-hidden"
@@ -396,7 +396,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
 
   // 5. LARGE THUMBNAILS (Default Grid)
   return (
-    <div className="group relative flex flex-col bg-[#121316] rounded-xl border border-white/[0.06] hover:border-white/[0.14] transition-all overflow-hidden shadow-xs hover:shadow-md">
+    <div className="group relative flex flex-col bg-[#111113] rounded-xl border border-white/[0.06] hover:border-white/[0.14] transition-all overflow-hidden shadow-xs hover:shadow-md">
       <div
         onClick={() => onPlay(video)}
         className="relative aspect-video w-full bg-neutral-900 cursor-pointer overflow-hidden"

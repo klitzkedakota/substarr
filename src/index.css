@@ -1,12 +1,52 @@
 @import "tailwindcss";
 
+/*
+ * dogpal noir. The --dp-* tokens come from https://dogpal.app/shared/dogpal-theme.css
+ * (linked in index.html); the hex fallbacks keep the app styled if it fails to load.
+ * Mapping the neutral and red scales here means every neutral-* and red-* class follows the theme.
+ */
+@theme {
+  --font-sans: var(--dp-font-sans, "Inter", system-ui, sans-serif);
+  --font-mono: var(--dp-font-mono, "JetBrains Mono", ui-monospace, monospace);
+
+  --color-neutral-50: #f7f7f8;
+  --color-neutral-100: var(--dp-text, #f2f2f3);
+  --color-neutral-200: var(--dp-text-2, #d4d4d8);
+  --color-neutral-300: var(--dp-text-3, #bdbdc3);
+  --color-neutral-400: var(--dp-text-muted, #a1a1a8);
+  --color-neutral-500: var(--dp-text-subtle, #82828a);
+  --color-neutral-600: var(--dp-text-faint, #5c5c63);
+  --color-neutral-700: var(--dp-border-strong, #36363c);
+  --color-neutral-800: var(--dp-border, #26262b);
+  --color-neutral-900: var(--dp-surface-2, #18181b);
+  --color-neutral-950: var(--dp-bg, #050505);
+
+  --color-red-50: #fff1f1;
+  --color-red-100: #ffe0e0;
+  --color-red-200: #ffc2c3;
+  --color-red-300: var(--dp-accent-strong-text, #ff6b6b);
+  --color-red-400: var(--dp-accent-text, #ff2d2d);
+  --color-red-500: var(--dp-accent-hover, #f21a1a);
+  --color-red-600: var(--dp-accent, #e00000);
+  --color-red-700: var(--dp-accent-press, #b30000);
+  --color-red-800: #8a1a1a;
+  --color-red-900: #5c1414;
+  --color-red-950: #2e0b0b;
+
+  --color-emerald-400: var(--dp-success, #3fb950);
+  --color-emerald-500: var(--dp-success, #3fb950);
+  --color-amber-400: var(--dp-warning, #d29922);
+  --color-amber-500: var(--dp-warning, #d29922);
+}
+
+
 @layer base {
   body {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--font-sans);
   }
   
   code, pre, .font-mono {
-    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
   }
 }
@@ -22,10 +62,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: #36363c;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: #5c5c63;
 }

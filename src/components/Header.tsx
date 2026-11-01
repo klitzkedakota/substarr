@@ -5,8 +5,6 @@ import {
   SlidersHorizontal,
   Plus,
   RefreshCw,
-  Video as VideoIcon,
-  Users,
   Menu,
   ChevronRight,
   Sparkles,
@@ -159,7 +157,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="h-14 border-b border-white/[0.07] bg-[#0c0d10]/80 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between gap-3 sticky top-0 z-20">
+    <header className="h-14 border-b border-white/[0.07] bg-[#050505]/80 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between gap-3 sticky top-0 z-20">
       {/* Zone 1: Context & Breadcrumb */}
       <div className="flex items-center gap-3 min-w-0">
         <button
@@ -180,32 +178,6 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Zone 2: View Switcher & Search Bar */}
       <div className="flex items-center gap-3 max-w-md w-full justify-center">
-        {/* View Switcher: Videos / Channels */}
-        <div className="flex items-center p-0.5 bg-neutral-900 border border-white/[0.06] rounded-md shrink-0">
-          <button
-            onClick={() => onChangeView('videos')}
-            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded transition-colors whitespace-nowrap ${
-              activeView === 'videos'
-                ? 'bg-white/[0.12] text-white shadow-xs'
-                : 'text-neutral-400 hover:text-neutral-200'
-            }`}
-          >
-            <VideoIcon className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">Videos</span>
-          </button>
-          <button
-            onClick={() => onChangeView('channels')}
-            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded transition-colors whitespace-nowrap ${
-              activeView === 'channels'
-                ? 'bg-white/[0.12] text-white shadow-xs'
-                : 'text-neutral-400 hover:text-neutral-200'
-            }`}
-          >
-            <Users className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">Channels</span>
-          </button>
-        </div>
-
         {/* Search Input */}
         <div className="relative w-full max-w-xs hidden sm:block">
           <Search className="w-3.5 h-3.5 text-neutral-500 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -251,7 +223,7 @@ export const Header: React.FC<HeaderProps> = ({
                 className="fixed inset-0 z-30"
                 onClick={() => setShowLayoutMenu(false)}
               />
-              <div className="absolute right-0 top-full mt-1.5 z-40 w-56 bg-[#16171b] border border-white/[0.1] rounded-xl shadow-2xl py-1.5 text-xs text-neutral-300">
+              <div className="absolute right-0 top-full mt-1.5 z-40 w-56 bg-[#18181b] border border-white/[0.1] rounded-xl shadow-2xl py-1.5 text-xs text-neutral-300">
                 <div className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-500 border-b border-white/[0.06] mb-1">
                   Display Layout
                 </div>
@@ -295,22 +267,22 @@ export const Header: React.FC<HeaderProps> = ({
               onChange={(e) => onSortChange(e.target.value as SortOption)}
               className="appearance-none bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] text-neutral-300 text-xs rounded-md pl-2.5 pr-7 py-1.5 cursor-pointer focus:outline-hidden focus:border-neutral-500 transition-colors"
             >
-              <option value="newest" className="bg-[#121316] text-white">
+              <option value="newest" className="bg-[#111113] text-white">
                 Newest First
               </option>
-              <option value="oldest" className="bg-[#121316] text-white">
+              <option value="oldest" className="bg-[#111113] text-white">
                 Oldest First
               </option>
-              <option value="duration_desc" className="bg-[#121316] text-white">
+              <option value="duration_desc" className="bg-[#111113] text-white">
                 Longest Duration
               </option>
-              <option value="duration_asc" className="bg-[#121316] text-white">
+              <option value="duration_asc" className="bg-[#111113] text-white">
                 Shortest Duration
               </option>
-              <option value="views_desc" className="bg-[#121316] text-white">
+              <option value="views_desc" className="bg-[#111113] text-white">
                 Most Popular
               </option>
-              <option value="channel_asc" className="bg-[#121316] text-white">
+              <option value="channel_asc" className="bg-[#111113] text-white">
                 Channel (A-Z)
               </option>
             </select>
@@ -326,22 +298,22 @@ export const Header: React.FC<HeaderProps> = ({
               onChange={(e) => onChannelSortChange(e.target.value as ChannelSortOption)}
               className="appearance-none bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] text-neutral-300 text-xs rounded-md pl-2.5 pr-7 py-1.5 cursor-pointer focus:outline-hidden focus:border-neutral-500 transition-colors"
             >
-              <option value="recently_added" className="bg-[#121316] text-white">
+              <option value="recently_added" className="bg-[#111113] text-white">
                 Recently Added
               </option>
-              <option value="title_asc" className="bg-[#121316] text-white">
+              <option value="title_asc" className="bg-[#111113] text-white">
                 Name (A-Z)
               </option>
-              <option value="title_desc" className="bg-[#121316] text-white">
+              <option value="title_desc" className="bg-[#111113] text-white">
                 Name (Z-A)
               </option>
-              <option value="subs_desc" className="bg-[#121316] text-white">
+              <option value="subs_desc" className="bg-[#111113] text-white">
                 Most Subscribers
               </option>
-              <option value="subs_asc" className="bg-[#121316] text-white">
+              <option value="subs_asc" className="bg-[#111113] text-white">
                 Fewest Subscribers
               </option>
-              <option value="videos_desc" className="bg-[#121316] text-white">
+              <option value="videos_desc" className="bg-[#111113] text-white">
                 Most Videos Synced
               </option>
             </select>

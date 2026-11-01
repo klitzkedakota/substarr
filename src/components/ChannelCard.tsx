@@ -69,11 +69,11 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({
       onClick={(e) => e.stopPropagation()}
       className="bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-neutral-200 text-xs rounded px-2 py-1 max-w-[150px] truncate focus:outline-hidden transition-colors"
     >
-      <option value="uncategorized" className="bg-[#17181c] text-neutral-400">
+      <option value="uncategorized" className="bg-[#18181b] text-neutral-400">
         Uncategorized
       </option>
       {folders.map((f) => (
-        <option key={f.id} value={f.id} className="bg-[#17181c] text-white">
+        <option key={f.id} value={f.id} className="bg-[#18181b] text-white">
           {f.name}
         </option>
       ))}
@@ -87,7 +87,7 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({
         draggable
         onDragStart={handleDragStart}
         onClick={() => onSelectChannel(channel)}
-        className="group flex items-center justify-between px-3.5 py-2.5 bg-[#121316] hover:bg-white/[0.04] border border-white/[0.05] hover:border-white/[0.12] rounded-lg transition-colors cursor-pointer text-xs"
+        className="group flex items-center justify-between px-3.5 py-2.5 bg-[#111113] hover:bg-white/[0.04] border border-white/[0.05] hover:border-white/[0.12] rounded-lg transition-colors cursor-pointer text-xs"
       >
         <div className="flex items-center gap-3 min-w-0 flex-1 pr-4">
           <div
@@ -158,7 +158,7 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({
       <div
         draggable
         onDragStart={handleDragStart}
-        className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-[#121316] hover:bg-[#14151a] border border-white/[0.06] hover:border-white/[0.14] rounded-xl transition-all shadow-xs gap-3"
+        className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-[#111113] hover:bg-[#18181b] border border-white/[0.06] hover:border-white/[0.14] rounded-xl transition-all shadow-xs gap-3"
       >
         <div className="flex items-start sm:items-center gap-3.5 min-w-0 flex-1">
           <div
@@ -252,7 +252,7 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({
       <div
         draggable
         onDragStart={handleDragStart}
-        className="group relative h-48 sm:h-52 rounded-2xl overflow-hidden border border-white/[0.08] hover:border-white/[0.18] transition-all shadow-md bg-[#131418] flex flex-col justify-between p-5"
+        className="group relative h-48 sm:h-52 rounded-2xl overflow-hidden border border-white/[0.08] hover:border-white/[0.18] transition-all shadow-md bg-[#111113] flex flex-col justify-between p-5"
       >
         <div className="flex items-start justify-between z-10">
           <div className="flex items-center gap-3.5">
@@ -334,7 +334,7 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({
       <div
         draggable
         onDragStart={handleDragStart}
-        className="group relative flex flex-col justify-between bg-[#121316] rounded-lg border border-white/[0.06] hover:border-white/[0.15] p-3 transition-all shadow-xs cursor-grab"
+        className="group relative flex flex-col justify-between bg-[#111113] rounded-lg border border-white/[0.06] hover:border-white/[0.15] p-3 transition-all shadow-xs cursor-grab"
       >
         <div>
           <div className="flex items-center gap-2.5">
@@ -379,7 +379,7 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({
     <div
       draggable
       onDragStart={handleDragStart}
-      className="group relative flex flex-col justify-between bg-[#121316] rounded-xl border border-white/[0.06] hover:border-white/[0.16] p-4 transition-all shadow-xs cursor-grab active:cursor-grabbing"
+      className="group relative flex flex-col justify-between bg-[#111113] rounded-xl border border-white/[0.06] hover:border-white/[0.16] p-4 transition-all shadow-xs cursor-grab active:cursor-grabbing"
     >
       <div className="absolute top-3 right-3 flex items-center gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
         <a
